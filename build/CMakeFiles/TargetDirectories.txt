@@ -1,0 +1,8 @@
+/home/eduardade/kpo2/build/CMakeFiles/edit_cache.dir
+/home/eduardade/kpo2/build/CMakeFiles/rebuild_cache.dir
+/home/eduardade/kpo2/build/src/CMakeFiles/finance_app.dir
+/home/eduardade/kpo2/build/src/CMakeFiles/edit_cache.dir
+/home/eduardade/kpo2/build/src/CMakeFiles/rebuild_cache.dir
+/home/eduardade/kpo2/build/tests/CMakeFiles/finance_tests.dir
+/home/eduardade/kpo2/build/tests/CMakeFiles/edit_cache.dir
+/home/eduardade/kpo2/build/tests/CMakeFiles/rebuild_cache.dir

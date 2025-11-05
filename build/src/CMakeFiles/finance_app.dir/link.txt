@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/finance_app.dir/main.cpp.o CMakeFiles/finance_app.dir/facades.cpp.o CMakeFiles/finance_app.dir/analytics.cpp.o CMakeFiles/finance_app.dir/export_visitors.cpp.o -o finance_app 
