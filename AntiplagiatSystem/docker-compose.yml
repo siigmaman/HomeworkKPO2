@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: antiplagiat-postgres
+    environment:
+      POSTGRES_DB: antiplagiat
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - antiplagiat-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  file-service:
+    build: ./file-service
+    container_name: antiplagiat-file-service
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: antiplagiat
+      DB_USER: admin
+      DB_PASSWORD: secret
+      UPLOAD_DIR: /app/uploads
+      SERVICE_PORT: 8080
+    volumes:
+      - uploads_volume:/app/uploads
+    networks:
+      - antiplagiat-net
+    restart: unless-stopped
+
+  analysis-service:
+    build: ./analysis-service
+    container_name: antiplagiat-analysis-service
+    expose:
+      - "8080"
+    depends_on:
+      - postgres
+      - file-service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: antiplagiat
+      DB_USER: admin
+      DB_PASSWORD: secret
+      FILE_SERVICE_URL: http://file-service:8080
+      SERVICE_PORT: 8080
+    networks:
+      - antiplagiat-net
+    restart: unless-stopped
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: antiplagiat-api-gateway
+    expose:
+      - "8080"
+    depends_on:
+      - file-service
+      - analysis-service
+    environment:
+      FILE_SERVICE_URL: http://file-service:8080
+      ANALYSIS_SERVICE_URL: http://analysis-service:8080
+      GATEWAY_PORT: 8080
+    networks:
+      - antiplagiat-net
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: antiplagiat-nginx
+    ports:
+      - "80:80"
+      - "443:443" 
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - api-gateway
+      - file-service
+      - analysis-service
+    networks:
+      - antiplagiat-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  antiplagiat-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  uploads_volume:

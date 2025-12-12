@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -pthread CMakeFiles/api_gateway.dir/src/main.cpp.o CMakeFiles/api_gateway.dir/src/gateway.cpp.o -o api_gateway  /usr/lib/x86_64-linux-gnu/libcpprest.so.2.10 /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/x86_64-linux-gnu/libssl.so -lpthread /usr/lib/x86_64-linux-gnu/libcrypto.so 
