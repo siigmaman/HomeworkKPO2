@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/finance_tests.dir/test_core.cpp.o -o finance_tests 
