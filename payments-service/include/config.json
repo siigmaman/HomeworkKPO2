@@ -1,0 +1,22 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "payments_db",
+    "user": "microservice",
+    "password": "password"
+  },
+  "rabbitmq": {
+    "host": "localhost",
+    "port": 5672,
+    "user": "admin",
+    "password": "password",
+    "exchange": "payments",
+    "payment_request_queue": "payment.requests",
+    "payment_result_queue": "payment.results"
+  },
+  "server": {
+    "port": 8080,
+    "threads": 4
+  }
+}
