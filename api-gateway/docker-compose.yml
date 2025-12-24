@@ -1,0 +1,102 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  postgres-orders:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: orders_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d orders_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  postgres-payments:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payments_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d payments_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  orders-service:
+    build:
+      context: .
+      dockerfile: orders-service/include/Dockerfile
+    environment:
+      ORDERS_CONFIG: /app/orders-service/include/config.json
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-orders:
+        condition: service_healthy
+    expose:
+      - "8080"
+
+  payments-service:
+    build:
+      context: .
+      dockerfile: payments-service/include/Dockerfile
+    environment:
+      PAYMENTS_CONFIG: /app/payments-service/include/config.json
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-payments:
+        condition: service_healthy
+    expose:
+      - "8080"
+
+  websocket-service:
+    build:
+      context: .
+      dockerfile: websocket-service/include/Dockerfile
+    environment:
+      WS_CONFIG: /app/websocket-service/include/config.json
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    expose:
+      - "9000"
+
+  frontend:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - orders-service
+      - payments-service
+      - websocket-service
+      - frontend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
